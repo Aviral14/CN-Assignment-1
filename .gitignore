@@ -50,3 +50,10 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# Assignment Specific
+*.out
+*.html
+*.pl 
+*.err
+*.gif
