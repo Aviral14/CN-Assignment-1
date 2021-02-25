@@ -15,6 +15,7 @@
 
 int cl = 0;
 char *creds;
+char final[100];
 char s[1000];
 char p[1000];
 int server;
@@ -47,6 +48,34 @@ void frame_message(char *msg, char *url) {
             "Chrome/77.0.3865.90 Safari/537.36\r\nProxy-Authorization: Basic "
             "%s\r\n\r\n",
             url, creds);
+}
+
+int find_image(char *name, char *url) {
+    FILE *filePointer = fopen(name, "r");
+    char ch = ' ';
+    int i = 0;
+    char text[1000];
+    while ((ch = fgetc(filePointer)) != EOF) {
+        text[i++] = ch;
+    }
+    text[i] = '\0';
+    char *ret = strstr(text, "IMG SRC");
+    ret += 9;
+    i = 0;
+    char img[100];
+    while (ret[i] != '\"') {
+        img[i] = ret[i];
+        i++;
+    }
+    img[i] = '\0';
+    char *pret = strstr(img, url);
+    if (!pret) {
+        strcat(final, url);
+        strcat(final, "/");
+        strcat(final, img);
+    } else {
+        strcat(final, img);
+    }
 }
 
 // Takes string to be encoded as input
@@ -136,7 +165,7 @@ int seek_till_html(char *str) {
 
 void get_response(char *msg, FILE *filePointer, int type) {
     cl = 0;
-    server=make();
+    server = make();
     char buff[BUFF_LEN];
     memset(buff, '0', sizeof(buff));
     write(server, msg, strlen(msg));
@@ -209,19 +238,20 @@ int main(int argsc, char *argsv[]) {
     server = make();
 
     char msg2[1000];
-    sprintf(
-        msg2,
-        "GET http://%s/cc.gif HTTP/1.1\r\nUser-Agent: Mozilla/5.0 (Windows NT "
-        "10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/77.0.3865.90 Safari/537.36\r\nProxy-Authorization: Basic "
-        "%s\r\n\r\n",
-        argsv[1], creds);
 
     FILE *filePointer = fopen(argsv[6], "w");
     get_response(msg1, filePointer, 1);
     fclose(filePointer);
     if (!strcmp(argsv[1], "info.in2p3.fr") && argsc == 8) {
         FILE *filePointer = fopen(argsv[7], "wb");
+        find_image(argsv[6], argsv[1]);
+        sprintf(
+            msg2,
+            "GET http://%s HTTP/1.1\r\nUser-Agent: Mozilla/5.0 (Windows NT "
+            "10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/77.0.3865.90 Safari/537.36\r\nProxy-Authorization: Basic "
+            "%s\r\n\r\n",
+            final, creds);
         get_response(msg2, filePointer, 0);
         fclose(filePointer);
     }
