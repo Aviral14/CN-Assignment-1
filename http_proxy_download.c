@@ -1,5 +1,7 @@
 /* f20180192@hyderabad.bits-pilani.ac.in Aviral Agarwal */
 
+/* Program to Access websites through a proxy */
+
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -71,7 +73,8 @@ int find_image(char *name, char *url) {
     char *pret = strstr(img, url);
     if (!pret) {
         strcat(final, url);
-        strcat(final, "/");
+        if (url[strlen(url) - 1] != '/')
+            strcat(final, "/");
         strcat(final, img);
     } else {
         strcat(final, img);
@@ -242,7 +245,9 @@ int main(int argsc, char *argsv[]) {
     FILE *filePointer = fopen(argsv[6], "w");
     get_response(msg1, filePointer, 1);
     fclose(filePointer);
-    if (!strcmp(argsv[1], "info.in2p3.fr") && argsc == 8) {
+    if ((!strcmp(argsv[1], "info.in2p3.fr") ||
+         !strcmp(argsv[1], "info.in2p3.fr/")) &&
+        argsc == 8) {
         FILE *filePointer = fopen(argsv[7], "wb");
         find_image(argsv[6], argsv[1]);
         sprintf(
